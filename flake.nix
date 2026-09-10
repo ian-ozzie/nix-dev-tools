@@ -56,9 +56,14 @@
       checks = forEachSystem (
         system:
         let
+          pkgs = nixpkgs.legacyPackages.${system};
           tooling = forSystem system;
+          php = tooling.php.mkPhp { };
         in
         {
+          inherit php;
+          composer = php.packages.composer;
+
           nix-lint = tooling.gitHooks.run {
             src = ./.;
             # Do not invoke nix flake check from inside its own checks.
@@ -67,6 +72,32 @@
 
           inherit (tooling.scripts) nix-dev-mailhog nix-dev-redis;
         }
+        // lib.mapAttrs' (
+          name: bundle:
+          lib.nameValuePair "bundle-${name}" (
+            pkgs.buildEnv {
+              name = "bundle-${name}";
+              paths = bundle.packages or [ ];
+            }
+          )
+        ) tooling.bundles
+        // lib.mapAttrs' (
+          name: preset:
+          let
+            check = tooling.gitHooks.run {
+              src = ./.;
+              hooks = preset;
+            };
+          in
+          lib.nameValuePair "hooks-${name}" (
+            pkgs.runCommand "hooks-${name}" { nativeBuildInputs = [ pkgs.pre-commit ]; } ''
+              export HOME="$TMPDIR"
+              # Validate configuration without running consumer scripts or recursive flake checks.
+              pre-commit validate-config ${check.config.configFile}
+              touch "$out"
+            ''
+          )
+        ) hooks.presets
       );
 
       devShells = forEachSystem (system: {
