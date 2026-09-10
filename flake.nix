@@ -64,6 +64,11 @@
           inherit php;
           composer = php.packages.composer;
 
+          general-lint = tooling.gitHooks.run {
+            src = ./.;
+            hooks = hooks.presets.general;
+          };
+
           nix-lint = tooling.gitHooks.run {
             src = ./.;
             # Do not invoke nix flake check from inside its own checks.
@@ -110,7 +115,10 @@
             "nix"
           ];
 
-          hooks = hooks.presets.nix;
+          hooks = hooks.merge [
+            hooks.presets.general
+            hooks.presets.nix
+          ];
         };
       });
     };
