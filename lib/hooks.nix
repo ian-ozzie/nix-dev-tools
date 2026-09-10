@@ -1,10 +1,44 @@
 { lib }:
+let
+  prettierTypes = [
+    "css"
+    "graphql"
+    "html"
+    "javascript"
+    "json"
+    "jsx"
+    "less"
+    "markdown"
+    "scss"
+    "ts"
+    "tsx"
+    "vue"
+    "yaml"
+  ];
+in
 {
   merge = lib.foldl' lib.recursiveUpdate { };
   select = names: preset: lib.getAttrs names preset;
   without = names: preset: removeAttrs preset names;
 
   presets = {
+    general = {
+      check-case-conflicts.enable = true;
+      check-symlinks.enable = true;
+      detect-private-keys.enable = true;
+
+      check-merge-conflicts = {
+        enable = true;
+        args = [ "--assume-in-merge" ];
+      };
+
+      prettier = {
+        enable = true;
+        name = "Prettier format";
+        types_or = prettierTypes;
+      };
+    };
+
     nix = {
       deadnix.enable = true;
       nixfmt.enable = true;
@@ -15,6 +49,7 @@
         entry = "nix flake check";
         files = "\\.nix$|^flake\\.lock$";
         pass_filenames = false;
+        stages = [ "pre-push" ];
       };
     };
 
@@ -33,21 +68,7 @@
         name = "Prettier format";
         pass_filenames = false;
 
-        types_or = [
-          "css"
-          "graphql"
-          "html"
-          "javascript"
-          "json"
-          "jsx"
-          "less"
-          "markdown"
-          "scss"
-          "ts"
-          "tsx"
-          "vue"
-          "yaml"
-        ];
+        types_or = prettierTypes;
       };
 
       npm-static = {
