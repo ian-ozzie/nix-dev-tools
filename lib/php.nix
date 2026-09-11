@@ -1,8 +1,48 @@
 { lib, pkgs }:
 rec {
   defaultExtensions = [
+    "bcmath"
+    "calendar"
+    "ctype"
+    "curl"
+    "dom"
+    "exif"
+    "fileinfo"
+    "filter"
+    "ftp"
+    "gd"
+    "gettext"
+    "gmp"
+    "iconv"
+    "intl"
+    "ldap"
+    "mbstring"
+    "mysqli"
+    "mysqlnd"
+    "openssl"
+    "pcntl"
+    "pdo"
+    "pdo_mysql"
+    "pdo_odbc"
+    "pdo_pgsql"
+    "pdo_sqlite"
+    "pgsql"
+    "posix"
+    "readline"
     "redis"
+    "session"
+    "simplexml"
+    "soap"
+    "sockets"
+    "sodium"
+    "sqlite3"
+    "sysvsem"
+    "tokenizer"
     "xdebug"
+    "xmlreader"
+    "xmlwriter"
+    "zip"
+    "zlib"
   ];
 
   defaultVersion = "php85";
@@ -24,7 +64,9 @@ rec {
 
   mkPhp =
     {
+      excludeExtensions ? [ ],
       extensions ? defaultExtensions,
+      extraExtensions ? [ ],
       settings ? { },
       version ? defaultVersion,
     }:
@@ -42,13 +84,16 @@ rec {
     in
     php.buildEnv {
       extensions =
-        { all, enabled, ... }:
+        { all, ... }:
         let
-          unknown = lib.filter (name: !(all ? ${name})) extensions;
+          # a name in both extraExtensions and excludeExtensions is dropped
+          wanted = lib.subtractLists excludeExtensions (lib.unique (extensions ++ extraExtensions));
+
+          unknown = lib.filter (name: !(all ? ${name})) (extensions ++ extraExtensions ++ excludeExtensions);
         in
         lib.throwIf (unknown != [ ])
-          "mkPhp: ${version} has no extension ${lib.concatStringsSep ", " unknown}"
-          (enabled ++ lib.attrVals extensions all);
+          "mkPhp: ${version} has no extension ${lib.concatStringsSep ", " (lib.unique unknown)}"
+          (lib.attrVals wanted all);
 
       # the settings attrset as php.ini, a null value dropping a key
       extraConfig = lib.concatStringsSep "\n" (
