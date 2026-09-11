@@ -74,9 +74,8 @@
             # Do not invoke nix flake check from inside its own checks.
             hooks = hooks.without [ "nix-flake-check" ] hooks.presets.nix;
           };
-
-          inherit (tooling.scripts) nix-dev-mailhog nix-dev-redis;
         }
+        // tooling.scripts
         // lib.mapAttrs' (
           name: bundle:
           lib.nameValuePair "bundle-${name}" (
