@@ -59,7 +59,12 @@ rec {
   mergeBundles =
     names:
     let
-      selected = lib.attrVals names bundles;
+      unknown = lib.filter (name: !(bundles ? ${name})) names;
+
+      selected =
+        lib.throwIf (unknown != [ ])
+          "mergeBundles: no bundle named ${lib.concatStringsSep ", " unknown} (have ${lib.concatStringsSep ", " (lib.attrNames bundles)})"
+          (lib.attrVals names bundles);
     in
     {
       env = lib.foldl' (acc: bundle: acc // (bundle.env or { })) { } selected;
