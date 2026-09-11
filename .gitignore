@@ -1,2 +1,5 @@
 .direnv/
+.envrc.local
 .pre-commit-config.yaml
+result
+result-*
