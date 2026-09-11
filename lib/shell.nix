@@ -35,7 +35,7 @@ pkgs.mkShell {
 
   passthru = {
     inherit checks;
-    php = if php == null then null else phpEnv;
+    php = phpEnv;
   };
 
   shellHook = lib.concatStringsSep "\n" (
