@@ -15,11 +15,20 @@ let
     "vue"
     "yaml"
   ];
+
+  checkNames =
+    fn: names: preset:
+    let
+      unknown = lib.filter (name: !(preset ? ${name})) names;
+    in
+    lib.throwIf (unknown != [ ])
+      "hooks.${fn}: no hook named ${lib.concatStringsSep ", " unknown} (have ${lib.concatStringsSep ", " (lib.attrNames preset)})"
+      names;
 in
 {
   merge = lib.foldl' lib.recursiveUpdate { };
-  select = names: preset: lib.getAttrs names preset;
-  without = names: preset: removeAttrs preset names;
+  select = names: preset: lib.getAttrs (checkNames "select" names preset) preset;
+  without = names: preset: removeAttrs preset (checkNames "without" names preset);
 
   presets = {
     general = {
