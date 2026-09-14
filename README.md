@@ -1,5 +1,7 @@
 # Dev Tools
 
+[![xc compatible](https://xcfile.dev/badge.svg)](https://xcfile.dev)
+
 Common flake to centralise the pin on my devshells/tooling.
 
 ## Usage
@@ -62,6 +64,14 @@ Check flake inputs
 
 ```bash
 nix flake metadata
+```
+
+### test
+
+Evaluate all supported systems and run checks for the current system. Used by CI
+
+```bash
+nix flake check --all-systems
 ```
 
 ### php-extensions
